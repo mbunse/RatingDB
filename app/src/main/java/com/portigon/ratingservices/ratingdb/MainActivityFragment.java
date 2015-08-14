@@ -10,22 +10,23 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
+import com.microsoft.windowsazure.mobileservices.MobileServiceException;
+import com.microsoft.windowsazure.mobileservices.table.MobileServiceTable;
+import com.microsoft.windowsazure.mobileservices.table.sync.MobileServiceSyncContext;
+import com.microsoft.windowsazure.mobileservices.table.sync.localstore.ColumnDataType;
+import com.microsoft.windowsazure.mobileservices.table.sync.localstore.SQLiteLocalStore;
+import com.microsoft.windowsazure.mobileservices.table.sync.synchandler.SimpleSyncHandler;
+import com.portigon.ratingservices.ratingdb.data.Rating;
+import com.portigon.ratingservices.ratingdb.data.RatingAdapter;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.net.MalformedURLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Implementation of fragment listing BusinessPartners with Ratings
@@ -36,15 +37,54 @@ import java.util.List;
  */
 public class MainActivityFragment extends Fragment {
 
-    ArrayAdapter<String> mRatingsAdapter;
+    private final String LOG_TAG = MainActivityFragment.class.getSimpleName();
+
+    /**
+     * Mobile Service Client reference
+     */
+    private MobileServiceClient mClient;
+    private MobileServiceTable<Rating> mRatingTable;
+
+    private RatingAdapter mRatingsAdapter;
+
 
     public MainActivityFragment() {
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+
+        try {
+            mClient = new MobileServiceClient(getString(R.string.api_url), getString(R.string.api_key), getActivity());
+
+            mRatingTable = mClient.getTable(Rating.class);
+
+            initLocalStore().get();
+
+            // Create an adapter to bind the items with the view
+            mRatingsAdapter = new RatingAdapter(getActivity(), R.layout.list_item_bp_rating);
+            ListView listView = (ListView) rootView.findViewById(R.id.listView);
+            listView.setAdapter(mRatingsAdapter);
+
+            // Load the items from the Mobile Service
+            refreshItemsFromTable();
+        } catch (MalformedURLException e) {
+            Log.e(LOG_TAG, "There was an error creating the Mobile Service. Verify the URL " + e.getMessage());
+        }
+        //Next three exceptions may stem from initLocalStore()
+         catch (Exception e) {
+             Log.e(LOG_TAG, "Error " + e.getMessage());
+         }
+
+        return rootView;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+
     }
 
     @Override
@@ -57,8 +97,7 @@ public class MainActivityFragment extends Fragment {
         int id = item.getItemId();
         switch (id) {
             case R.id.action_refresh:
-                FetchBpRatingsTask fetchBpRatingsTask = new FetchBpRatingsTask();
-                fetchBpRatingsTask.execute();
+                refreshItemsFromTable();
                 break;
             default:
                 break;
@@ -66,136 +105,97 @@ public class MainActivityFragment extends Fragment {
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Dummy data
-        String[] data = {
-                "Corporate X - Rated B",
-                "Project F - Rated D",
-                "Corporate D - Rated C",
-                "Project J - Rated B",
-                "Sovereign A - Rated A",
-                "Sovereign C - Rated B",
-                "Corporate Fu - Rated C",
-                "Corporate E - Rated A",
-                "Project Ni - Rated B",
-                "Corporate Ds - Rated B",
-                "Corporate R - Rated C"
-        };
-
-        List<String> BpRatings = new ArrayList<>(Arrays.asList(data));
-        mRatingsAdapter = new ArrayAdapter<>(
-                getActivity(),
-                R.layout.list_item_bp_rating,
-                R.id.list_item_bp_rating,
-                BpRatings
-        );
-
-        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-
-        ListView listView = (ListView) rootView.findViewById(R.id.listView_bp_ratings);
-        listView.setAdapter(mRatingsAdapter);
-        return rootView;
-    }
-
 
     /**
-     * Created by Moritz on 14.08.2015.
-     */
-    public class FetchBpRatingsTask extends AsyncTask<Void, Void, String[]> {
-        final String LOG_TAG = FetchBpRatingsTask.class.getSimpleName();
+     * Initialize local storage
+     * @return Void
+    */
+    private AsyncTask<Void, Void, Void> initLocalStore() {
 
-        protected String[] doInBackground(Void... params) {
-            // Will be closes in finally block.
-            HttpURLConnection urlConnection = null;
-            BufferedReader reader = null;
+        AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... params) {
+                try {
 
-            // JSON response string from rating db web API.
-            String bpRatingsJsonString = null;
+                    MobileServiceSyncContext syncContext = mClient.getSyncContext();
 
-            try {
-                //Current URL for testing:
-                URL url = new URL("http://ratingtool.azure-mobile.net/tables/BusinessPartner?$expand=currentRating");
+                    if (syncContext.isInitialized())
+                        return null;
 
-                // Open connection and send GET request.
-                urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("GET");
-                urlConnection.connect();
+                    SQLiteLocalStore localStore = new SQLiteLocalStore(mClient.getContext(), "OfflineStore", null, 1);
 
-                // Read the input stream into a String
-                InputStream inputStream = urlConnection.getInputStream();
-                StringBuilder buffer = new StringBuilder();
-                if (inputStream == null) {
-                    return null;
-                }
-                reader = new BufferedReader(new InputStreamReader(inputStream));
+                    Map<String, ColumnDataType> tableDefinition = new HashMap<>();
+                    tableDefinition.put("id", ColumnDataType.String);
+                    tableDefinition.put("ratingStatus", ColumnDataType.Integer);
+                    tableDefinition.put("validUntil", ColumnDataType.Date);
+                    tableDefinition.put("ratingMethod", ColumnDataType.Integer);
+                    tableDefinition.put("businessPartnerId", ColumnDataType.String);
 
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    // Add newline for debugging purposes
-                    buffer.append(line).append("\n");
+                    localStore.defineTable("Rating", tableDefinition);
+
+                    SimpleSyncHandler handler = new SimpleSyncHandler();
+
+                    syncContext.initialize(localStore, handler).get();
+
+                } catch (final Exception e) {
+                    Log.e(LOG_TAG, e.getMessage());
                 }
 
-                if (buffer.length() == 0) {
-                    // No data -> no further action.
-                    return null;
-                }
-                bpRatingsJsonString = buffer.toString();
-
-            } catch (IOException e) {
-                Log.e(LOG_TAG, "Error ", e);
-                //Catch http connection exceptions
                 return null;
-            } finally {
-                if (urlConnection != null) {
-                    urlConnection.disconnect();
-                }
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (final IOException e) {
-                        Log.e(LOG_TAG, "Error closing stream", e);
-                    }
-                }
             }
-            try {
-                return getBpRatingsFromJsonString(bpRatingsJsonString);
-            } catch (JSONException e) {
-                // Catch error in JSON parsing
-                Log.e(LOG_TAG, e.getMessage(), e);
-                e.printStackTrace();
-            }
+        };
 
-
-            return null;
-        }
-
-        private String[] getBpRatingsFromJsonString(String jsonString) throws JSONException {
-
-            final String RDBAPI_NAME = "shortName";
-            final String RDBAPI_RATING = "currentRating";
-            //Returned JSON looks like:
-            //[{"id":"1","shortName":"Company A","currentRating":null},{"id":"2","shortName":"Sovereign B","currentRating":null}]
-
-            JSONArray bpRatingsJsonArray = new JSONArray(jsonString);
-            int nRatings = bpRatingsJsonArray.length();
-            String[] resultsString = new String[nRatings];
-            for (int i = 0; i < nRatings; ++i) {
-                JSONObject bpRatingJsonObj = bpRatingsJsonArray.getJSONObject(i);
-                resultsString[i] = bpRatingJsonObj.getString(RDBAPI_NAME)
-                        + bpRatingJsonObj.getString(RDBAPI_RATING);
-            }
-            return resultsString;
-        }
-
-        @Override
-        protected void onPostExecute(String[] strings) {
-            if (strings != null) {
-                mRatingsAdapter.clear();
-                mRatingsAdapter.addAll(Arrays.asList(strings));
-            }
-            super.onPostExecute(strings);
-        }
+        return task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
+
+    /**
+     * Refresh the list with the items in the Mobile Service Table
+     */
+
+    private List<Rating> refreshItemsFromMobileServiceTable() throws MobileServiceException, ExecutionException, InterruptedException {
+        return mRatingTable.execute().get();
+
+
+    }
+
+    /**
+     * Refresh the list with the items in the Table
+     */
+    private void refreshItemsFromTable() {
+
+        // Get the items that weren't marked as completed and add them in the
+        // adapter
+
+        AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>(){
+            @Override
+            protected Void doInBackground(Void... params) {
+
+                try {
+                    final List<Rating> results = refreshItemsFromMobileServiceTable();
+
+                    //Offline Sync
+                    //final List<ToDoItem> results = refreshItemsFromMobileServiceTableSyncTable();
+
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mRatingsAdapter.clear();
+
+                            for (Rating item : results) {
+                                mRatingsAdapter.add(item);
+                            }
+                        }
+                    });
+                } catch (final Exception e){
+                    Log.e(LOG_TAG, e.getMessage());
+                }
+
+                return null;
+            }
+        };
+
+        task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
+
+
 }
