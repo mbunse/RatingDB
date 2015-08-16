@@ -19,8 +19,8 @@ import com.microsoft.windowsazure.mobileservices.table.sync.MobileServiceSyncCon
 import com.microsoft.windowsazure.mobileservices.table.sync.localstore.ColumnDataType;
 import com.microsoft.windowsazure.mobileservices.table.sync.localstore.SQLiteLocalStore;
 import com.microsoft.windowsazure.mobileservices.table.sync.synchandler.SimpleSyncHandler;
-import com.portigon.ratingservices.ratingdb.data.Rating;
-import com.portigon.ratingservices.ratingdb.data.RatingAdapter;
+import com.portigon.ratingservices.ratingdb.data.BpCurrentRating;
+import com.portigon.ratingservices.ratingdb.data.BpCurrentRatingAdapter;
 
 import java.net.MalformedURLException;
 import java.util.HashMap;
@@ -43,9 +43,9 @@ public class MainActivityFragment extends Fragment {
      * Mobile Service Client reference
      */
     private MobileServiceClient mClient;
-    private MobileServiceTable<Rating> mRatingTable;
+    private MobileServiceTable<BpCurrentRating> mRatingTable;
 
-    private RatingAdapter mRatingsAdapter;
+    private BpCurrentRatingAdapter mRatingsAdapter;
 
 
     public MainActivityFragment() {
@@ -58,12 +58,12 @@ public class MainActivityFragment extends Fragment {
         try {
             mClient = new MobileServiceClient(getString(R.string.api_url), getString(R.string.api_key), getActivity());
 
-            mRatingTable = mClient.getTable(Rating.class);
+            mRatingTable = mClient.getTable(BpCurrentRating.class);
 
             initLocalStore().get();
 
             // Create an adapter to bind the items with the view
-            mRatingsAdapter = new RatingAdapter(getActivity(), R.layout.list_item_bp_rating);
+            mRatingsAdapter = new BpCurrentRatingAdapter(getActivity(), R.layout.list_item_bp_rating);
             ListView listView = (ListView) rootView.findViewById(R.id.listView);
             listView.setAdapter(mRatingsAdapter);
 
@@ -126,10 +126,12 @@ public class MainActivityFragment extends Fragment {
 
                     Map<String, ColumnDataType> tableDefinition = new HashMap<>();
                     tableDefinition.put("id", ColumnDataType.String);
-                    tableDefinition.put("ratingStatus", ColumnDataType.Integer);
-                    tableDefinition.put("validUntil", ColumnDataType.Date);
-                    tableDefinition.put("ratingMethod", ColumnDataType.Integer);
-                    tableDefinition.put("businessPartnerId", ColumnDataType.String);
+                    tableDefinition.put("ratingId", ColumnDataType.Integer);
+                    tableDefinition.put("businessPartnerId", ColumnDataType.Integer);
+                    tableDefinition.put("ratingBpId", ColumnDataType.String);
+                    tableDefinition.put("shortName", ColumnDataType.String);
+                    tableDefinition.put("ratingClass", ColumnDataType.String);
+                    tableDefinition.put("ratingMethod", ColumnDataType.String);
 
                     localStore.defineTable("Rating", tableDefinition);
 
@@ -152,7 +154,7 @@ public class MainActivityFragment extends Fragment {
      * Refresh the list with the items in the Mobile Service Table
      */
 
-    private List<Rating> refreshItemsFromMobileServiceTable() throws MobileServiceException, ExecutionException, InterruptedException {
+    private List<BpCurrentRating> refreshItemsFromMobileServiceTable() throws MobileServiceException, ExecutionException, InterruptedException {
         return mRatingTable.execute().get();
 
 
@@ -171,7 +173,7 @@ public class MainActivityFragment extends Fragment {
             protected Void doInBackground(Void... params) {
 
                 try {
-                    final List<Rating> results = refreshItemsFromMobileServiceTable();
+                    final List<BpCurrentRating> results = refreshItemsFromMobileServiceTable();
 
                     //Offline Sync
                     //final List<ToDoItem> results = refreshItemsFromMobileServiceTableSyncTable();
@@ -181,7 +183,7 @@ public class MainActivityFragment extends Fragment {
                         public void run() {
                             mRatingsAdapter.clear();
 
-                            for (Rating item : results) {
+                            for (BpCurrentRating item : results) {
                                 mRatingsAdapter.add(item);
                             }
                         }

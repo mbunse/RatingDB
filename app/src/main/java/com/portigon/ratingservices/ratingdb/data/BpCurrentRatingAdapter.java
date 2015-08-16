@@ -2,6 +2,7 @@ package com.portigon.ratingservices.ratingdb.data;
 
 import android.app.Activity;
 import android.content.Context;
+import android.media.Rating;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -17,13 +18,13 @@ import com.portigon.ratingservices.ratingdb.R;
  * @see Rating
  * @see com.portigon.ratingservices.ratingdb.MainActivityFragment
  */
-public class RatingAdapter extends ArrayAdapter<Rating>{
+public class BpCurrentRatingAdapter extends ArrayAdapter<BpCurrentRating>{
 
     private final Context mContext;
 
     private final int mLayoutResId;
 
-    public RatingAdapter(Context context, int layoutResId) {
+    public BpCurrentRatingAdapter(Context context, int layoutResId) {
         super(context, layoutResId);
         mContext = context;
         mLayoutResId = layoutResId;
@@ -33,7 +34,7 @@ public class RatingAdapter extends ArrayAdapter<Rating>{
     public View getView(int position, View convertView, ViewGroup parent) {
         View row = convertView;
 
-        final Rating currentRating = getItem(position);
+        final BpCurrentRating currentRating = getItem(position);
 
         if (row==null) {
             //Do not attach to root
@@ -43,8 +44,9 @@ public class RatingAdapter extends ArrayAdapter<Rating>{
         row.setTag(currentRating);
 
         final TextView textView = (TextView) row.findViewById(R.id.list_item_bp_rating);
-        textView.setText("BP: " + currentRating.mBusinessPartnerID +
-                ", Rating: " + currentRating.mRatingClass);
+        textView.setText("BP: " + currentRating.mShortName +
+                ", Method: " + currentRating.mRatingMethod.toUpperCase() +
+                ", Rating: " + currentRating.mRatingClass.toUpperCase());
 
         return textView;
     }
