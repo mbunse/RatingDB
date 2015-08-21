@@ -1,6 +1,7 @@
 package com.portigon.ratingservices.ratingdb;
 
 import android.app.Fragment;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -10,6 +11,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
@@ -67,6 +69,21 @@ public class MainActivityFragment extends Fragment {
             ListView listView = (ListView) rootView.findViewById(R.id.listView);
             listView.setAdapter(mRatingsAdapter);
 
+            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+                @Override
+                public void onItemClick(AdapterView adapterView, View view, int position, long l) {
+                    // CursorAdapter returns a cursor at the correct position for getItem(), or null
+                    // if it cannot seek to that position.
+                    BpCurrentRating rating = (BpCurrentRating) adapterView.getItemAtPosition(position);
+                    if (rating != null) {
+
+                        Intent intent = new Intent(getActivity(), SingleRatingActivity.class)
+                                .putExtra(SingleRatingActivityFragment.RATING_ID, rating.mId);
+                        startActivity(intent);
+                    }
+                }
+            });
             // Load the items from the Mobile Service
             refreshItemsFromTable();
         } catch (MalformedURLException e) {

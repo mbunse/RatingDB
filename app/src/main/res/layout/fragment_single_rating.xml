@@ -3,25 +3,20 @@
     android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".MainActivityFragment"
-    android:theme="@style/AppTheme"
+    android:paddingBottom="@dimen/activity_vertical_margin"
     android:orientation="vertical"
-    android:focusable="true" android:focusableInTouchMode="true"
-    >
+    tools:context="com.portigon.ratingservices.ratingdb.SingleRatingActivityFragment">
 
-
-    <SearchView
-        android:layout_width="wrap_content"
+    <TextView android:text="@string/hello_world" android:layout_width="wrap_content"
+        android:id="@+id/single_rating_text_view"
         android:layout_height="wrap_content"
-        android:id="@+id/searchView"
-        android:queryHint="@string/searchhint"
-        android:iconifiedByDefault="false"
         android:paddingBottom="@dimen/activity_vertical_margin"/>
 
-    <ListView
-        android:layout_width="match_parent"
-        android:layout_height="fill_parent"
-        android:id="@+id/listView" />
-
+    <ExpandableListView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/expandableListView"
+        android:layout_gravity="center_vertical"
+        android:layout_weight="1" />
 
 </LinearLayout>
