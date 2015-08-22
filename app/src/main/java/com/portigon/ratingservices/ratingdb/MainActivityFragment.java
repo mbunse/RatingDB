@@ -21,8 +21,8 @@ import com.microsoft.windowsazure.mobileservices.table.sync.MobileServiceSyncCon
 import com.microsoft.windowsazure.mobileservices.table.sync.localstore.ColumnDataType;
 import com.microsoft.windowsazure.mobileservices.table.sync.localstore.SQLiteLocalStore;
 import com.microsoft.windowsazure.mobileservices.table.sync.synchandler.SimpleSyncHandler;
-import com.portigon.ratingservices.ratingdb.data.BpCurrentRating;
-import com.portigon.ratingservices.ratingdb.data.BpCurrentRatingAdapter;
+import com.portigon.ratingservices.ratingdb.data.MobileBusinessPartner;
+import com.portigon.ratingservices.ratingdb.data.MobileBusinessPartnerAdapter;
 
 import java.net.MalformedURLException;
 import java.util.HashMap;
@@ -45,9 +45,9 @@ public class MainActivityFragment extends Fragment {
      * Mobile Service Client reference
      */
     private MobileServiceClient mClient;
-    private MobileServiceTable<BpCurrentRating> mRatingTable;
+    private MobileServiceTable<MobileBusinessPartner> mRatingTable;
 
-    private BpCurrentRatingAdapter mRatingsAdapter;
+    private MobileBusinessPartnerAdapter mRatingsAdapter;
 
 
     public MainActivityFragment() {
@@ -60,12 +60,12 @@ public class MainActivityFragment extends Fragment {
         try {
             mClient = new MobileServiceClient(getString(R.string.api_url), getString(R.string.api_key), getActivity());
 
-            mRatingTable = mClient.getTable(BpCurrentRating.class);
+            mRatingTable = mClient.getTable(MobileBusinessPartner.class);
 
             initLocalStore().get();
 
             // Create an adapter to bind the items with the view
-            mRatingsAdapter = new BpCurrentRatingAdapter(getActivity(), R.layout.list_item_bp_rating);
+            mRatingsAdapter = new MobileBusinessPartnerAdapter(getActivity(), R.layout.list_item_bp_rating);
             ListView listView = (ListView) rootView.findViewById(R.id.listView);
             listView.setAdapter(mRatingsAdapter);
 
@@ -75,7 +75,7 @@ public class MainActivityFragment extends Fragment {
                 public void onItemClick(AdapterView adapterView, View view, int position, long l) {
                     // CursorAdapter returns a cursor at the correct position for getItem(), or null
                     // if it cannot seek to that position.
-                    BpCurrentRating rating = (BpCurrentRating) adapterView.getItemAtPosition(position);
+                    MobileBusinessPartner rating = (MobileBusinessPartner) adapterView.getItemAtPosition(position);
                     if (rating != null) {
 
                         Intent intent = new Intent(getActivity(), SingleRatingActivity.class)
@@ -171,7 +171,7 @@ public class MainActivityFragment extends Fragment {
      * Refresh the list with the items in the Mobile Service Table
      */
 
-    private List<BpCurrentRating> refreshItemsFromMobileServiceTable() throws MobileServiceException, ExecutionException, InterruptedException {
+    private List<MobileBusinessPartner> refreshItemsFromMobileServiceTable() throws MobileServiceException, ExecutionException, InterruptedException {
         return mRatingTable.execute().get();
 
 
@@ -190,7 +190,7 @@ public class MainActivityFragment extends Fragment {
             protected Void doInBackground(Void... params) {
 
                 try {
-                    final List<BpCurrentRating> results = refreshItemsFromMobileServiceTable();
+                    final List<MobileBusinessPartner> results = refreshItemsFromMobileServiceTable();
 
                     //Offline Sync
                     //final List<ToDoItem> results = refreshItemsFromMobileServiceTableSyncTable();
@@ -200,7 +200,7 @@ public class MainActivityFragment extends Fragment {
                         public void run() {
                             mRatingsAdapter.clear();
 
-                            for (BpCurrentRating item : results) {
+                            for (MobileBusinessPartner item : results) {
                                 mRatingsAdapter.add(item);
                             }
                         }

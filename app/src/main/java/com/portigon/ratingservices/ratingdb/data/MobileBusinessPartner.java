@@ -6,7 +6,7 @@ package com.portigon.ratingservices.ratingdb.data;
  * Class for rating information
  */
 @SuppressWarnings("unused")
-public class BpCurrentRating  {
+public class MobileBusinessPartner {
 //
 //    public static Status {
 //            final static InProgress,

@@ -18,13 +18,13 @@ import com.portigon.ratingservices.ratingdb.R;
  * @see Rating
  * @see com.portigon.ratingservices.ratingdb.MainActivityFragment
  */
-public class BpCurrentRatingAdapter extends ArrayAdapter<BpCurrentRating>{
+public class MobileBusinessPartnerAdapter extends ArrayAdapter<MobileBusinessPartner>{
 
     private final Context mContext;
 
     private final int mLayoutResId;
 
-    public BpCurrentRatingAdapter(Context context, int layoutResId) {
+    public MobileBusinessPartnerAdapter(Context context, int layoutResId) {
         super(context, layoutResId);
         mContext = context;
         mLayoutResId = layoutResId;
@@ -34,7 +34,7 @@ public class BpCurrentRatingAdapter extends ArrayAdapter<BpCurrentRating>{
     public View getView(int position, View convertView, ViewGroup parent) {
         View row = convertView;
 
-        final BpCurrentRating currentRating = getItem(position);
+        final MobileBusinessPartner currentRating = getItem(position);
 
         if (row==null) {
             //Do not attach to root
