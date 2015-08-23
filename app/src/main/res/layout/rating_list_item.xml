@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="72dp"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:minHeight="?android:attr/listPreferredItemHeight">
+    <ImageView
+        android:layout_width="72dp"
+        android:layout_height="match_parent"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:id="@+id/rating_list_item_icon"
+        android:src="@drawable/cor_icon"/>
+    <TextView
+        android:layout_width="1dp"
+        android:textSize="16sp"
+        android:textColor="?android:attr/textColorPrimary"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:id="@+id/rating_list_item_name"
+        android:text="Corporate A">
+    </TextView>
+    <TextView
+        android:layout_width="50dp"
+        android:layout_weight="0"
+        android:layout_height="50dp"
+        android:layout_margin="16dp"
+        android:background="#e72"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:text="A"
+        android:id="@+id/rating_list_item_rating"/>
+
+</LinearLayout>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary_dark">#0D47A1</color>
+    <color name="primary">#2196F3</color>
+    <color name="accent">#BBDEFB</color>
+    <color name="rating_a">#5c5</color>
+    <color name="rating_b">#9c2</color>
+    <color name="rating_c">#ee0</color>
+    <color name="rating_d">#e72</color>
+</resources>

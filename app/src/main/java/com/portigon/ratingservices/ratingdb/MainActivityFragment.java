@@ -65,7 +65,7 @@ public class MainActivityFragment extends Fragment {
             initLocalStore().get();
 
             // Create an adapter to bind the items with the view
-            mRatingsAdapter = new MobileBusinessPartnerAdapter(getActivity(), R.layout.list_item_bp_rating);
+            mRatingsAdapter = new MobileBusinessPartnerAdapter(getActivity(), R.layout.rating_list_item);
             ListView listView = (ListView) rootView.findViewById(R.id.listView);
             listView.setAdapter(mRatingsAdapter);
 

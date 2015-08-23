@@ -6,6 +6,7 @@ import android.media.Rating;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.portigon.ratingservices.ratingdb.R;
@@ -43,11 +44,33 @@ public class MobileBusinessPartnerAdapter extends ArrayAdapter<MobileBusinessPar
 
         row.setTag(currentRating);
 
-        final TextView textView = (TextView) row.findViewById(R.id.list_item_bp_rating);
-        textView.setText("BP: " + currentRating.mShortName +
-                ", Method: " + currentRating.mRatingMethod.toUpperCase() +
-                ", Rating: " + currentRating.mRatingClass.toUpperCase());
+        final TextView nameTextView = (TextView) row.findViewById(R.id.rating_list_item_name);
+        final ImageView ratingMethodIcon = (ImageView) row.findViewById(R.id.rating_list_item_icon);
+        final TextView ratingTextView = (TextView) row.findViewById(R.id.rating_list_item_rating);
 
-        return textView;
+        if (currentRating.mRatingMethod.equals("cor")) {
+            ratingMethodIcon.setImageResource(R.drawable.cor_icon);
+        } else if (currentRating.mRatingMethod.equals("sov")) {
+            ratingMethodIcon.setImageResource(R.drawable.sov_icon);
+        }
+
+        nameTextView.setText(currentRating.mShortName);
+        switch (currentRating.mRatingClass) {
+            case "a":
+                ratingTextView.setBackgroundColor(mContext.getResources().getColor(R.color.rating_a));
+                break;
+            case "b":
+                ratingTextView.setBackgroundColor(mContext.getResources().getColor(R.color.rating_b));
+                break;
+            case "c":
+                ratingTextView.setBackgroundColor(mContext.getResources().getColor(R.color.rating_c));
+                break;
+            case "d":
+                ratingTextView.setBackgroundColor(mContext.getResources().getColor(R.color.rating_d));
+                break;
+        }
+        ratingTextView.setText(currentRating.mRatingClass.toUpperCase());
+
+        return row;
     }
 }
