@@ -45,13 +45,16 @@ public class MobileBusinessPartnerAdapter extends ArrayAdapter<MobileBusinessPar
         row.setTag(currentRating);
 
         final TextView nameTextView = (TextView) row.findViewById(R.id.rating_list_item_name);
+        final TextView nameSecondaryTextView = (TextView) row.findViewById(R.id.rating_list_item_name_secondary);
         final ImageView ratingMethodIcon = (ImageView) row.findViewById(R.id.rating_list_item_icon);
         final TextView ratingTextView = (TextView) row.findViewById(R.id.rating_list_item_rating);
 
         if (currentRating.mRatingMethod.equals("cor")) {
             ratingMethodIcon.setImageResource(R.drawable.cor_icon);
+            ratingMethodIcon.setBackgroundColor(mContext.getResources().getColor(R.color.bg_method_cor));
         } else if (currentRating.mRatingMethod.equals("sov")) {
             ratingMethodIcon.setImageResource(R.drawable.sov_icon);
+            ratingMethodIcon.setBackgroundColor(mContext.getResources().getColor(R.color.bg_method_sov));
         }
 
         nameTextView.setText(currentRating.mShortName);
@@ -70,7 +73,7 @@ public class MobileBusinessPartnerAdapter extends ArrayAdapter<MobileBusinessPar
                 break;
         }
         ratingTextView.setText(currentRating.mRatingClass.toUpperCase());
-
+        nameSecondaryTextView.setText("Rating method " + currentRating.mRatingMethod.toUpperCase());
         return row;
     }
 }

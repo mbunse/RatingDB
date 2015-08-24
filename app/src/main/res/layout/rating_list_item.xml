@@ -5,26 +5,39 @@
     android:orientation="horizontal"
     android:gravity="center_vertical"
     android:minHeight="?android:attr/listPreferredItemHeight">
-    <ImageView
-        android:layout_width="72dp"
-        android:layout_height="match_parent"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp"
+    <com.portigon.ratingservices.ratingdb.widget.CircleImageView
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_margin="16dp"
         android:id="@+id/rating_list_item_icon"
-        android:src="@drawable/cor_icon"/>
-    <TextView
-        android:layout_width="1dp"
-        android:textSize="16sp"
-        android:textColor="?android:attr/textColorPrimary"
-        android:layout_height="wrap_content"
+        android:src="@drawable/cor_icon"
+        android:background="@color/bg_method_cor" />
+    <LinearLayout
         android:layout_weight="1"
-        android:id="@+id/rating_list_item_name"
-        android:text="Corporate A">
-    </TextView>
+        android:layout_width="1dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textColor="?android:attr/textColorPrimary"
+            android:id="@+id/rating_list_item_name"
+            android:text="Corporate A">
+        </TextView>
+        <TextView
+            android:layout_width="wrap_content"
+            android:textSize="14sp"
+            android:textColor="?android:attr/textColorSecondary"
+            android:layout_height="wrap_content"
+            android:id="@+id/rating_list_item_name_secondary"
+            android:text="Corporate A">
+        </TextView>
+    </LinearLayout>
     <TextView
-        android:layout_width="50dp"
+        android:layout_width="24dp"
         android:layout_weight="0"
-        android:layout_height="50dp"
+        android:layout_height="24dp"
         android:layout_margin="16dp"
         android:background="#e72"
         android:textStyle="bold"

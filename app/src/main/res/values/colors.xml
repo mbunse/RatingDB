@@ -7,4 +7,6 @@
     <color name="rating_b">#9c2</color>
     <color name="rating_c">#ee0</color>
     <color name="rating_d">#e72</color>
+    <color name="bg_method_cor">#26c6da</color>
+    <color name="bg_method_sov">#ff5722</color>
 </resources>
