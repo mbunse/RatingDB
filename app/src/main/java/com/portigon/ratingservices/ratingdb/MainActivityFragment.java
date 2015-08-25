@@ -79,7 +79,8 @@ public class MainActivityFragment extends Fragment {
                     if (rating != null) {
 
                         Intent intent = new Intent(getActivity(), SingleRatingActivity.class)
-                                .putExtra(SingleRatingActivityFragment.RATING_ID, rating.mId);
+                                .putExtra(SingleRatingActivityFragment.RATING_ID, rating.mId)
+                                .putExtra(SingleRatingActivityFragment.BUSINESS_PARTNER_NAME,rating.mShortName);
                         startActivity(intent);
                     }
                 }

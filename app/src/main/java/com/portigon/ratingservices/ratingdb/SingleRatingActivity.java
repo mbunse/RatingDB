@@ -35,4 +35,5 @@ public class SingleRatingActivity extends Activity {
 
         return super.onOptionsItemSelected(item);
     }
+
 }

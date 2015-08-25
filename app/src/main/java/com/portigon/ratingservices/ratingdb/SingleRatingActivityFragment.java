@@ -1,15 +1,15 @@
 package com.portigon.ratingservices.ratingdb;
 
+import android.app.ActionBar;
 import android.app.Fragment;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ExpandableListView;
-import android.widget.SimpleExpandableListAdapter;
-import android.widget.TextView;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
@@ -23,8 +23,10 @@ import com.microsoft.windowsazure.mobileservices.table.sync.MobileServiceSyncCon
 import com.microsoft.windowsazure.mobileservices.table.sync.localstore.ColumnDataType;
 import com.microsoft.windowsazure.mobileservices.table.sync.localstore.SQLiteLocalStore;
 import com.microsoft.windowsazure.mobileservices.table.sync.synchandler.SimpleSyncHandler;
+import com.portigon.ratingservices.ratingdb.Utility.Utility;
 import com.portigon.ratingservices.ratingdb.data.MobilePartialRating;
 import com.portigon.ratingservices.ratingdb.data.MobileRatingSheet;
+import com.portigon.ratingservices.ratingdb.data.MobileRatingSheetAdapter;
 
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -40,8 +42,9 @@ import java.util.concurrent.ExecutionException;
 public class SingleRatingActivityFragment extends Fragment {
 
     public static final String RATING_ID = "ratingGUID";
+    public static final String BUSINESS_PARTNER_NAME = "bp_name";
 
-    static private final String GROUP_NAME = "RATING_SHEET_PART";
+
 
     public final String LOG_TAG = SingleRatingActivityFragment.class.getSimpleName();
 
@@ -51,7 +54,9 @@ public class SingleRatingActivityFragment extends Fragment {
 
     private MobileServiceTable<MobileRatingSheet> mRatingSheetTable;
 
-    private SimpleExpandableListAdapter mExpViewAdapter;
+    private ExpandableListView mExpandableListView;
+
+    private MobileRatingSheetAdapter mExpViewAdapter;
 
     private String mRatingGuid;
 
@@ -91,9 +96,13 @@ public class SingleRatingActivityFragment extends Fragment {
             initLocalStore().get();
 
             mRatingGuid = getActivity().getIntent().getStringExtra(RATING_ID);
-            TextView textView = (TextView) rootView.findViewById(R.id.single_rating_text_view);
-            textView.setText("ratingId: " + mRatingGuid);
+            ActionBar actionBar = getActivity().getActionBar();
+            if (actionBar != null) {
+                actionBar.setTitle(getActivity().getIntent().getStringExtra(BUSINESS_PARTNER_NAME));
+            }
 
+
+            mExpandableListView = (ExpandableListView) rootView.findViewById(R.id.expandableListView);
             refreshItemsFromTable();
 
         } catch (MalformedURLException e) {
@@ -181,42 +190,53 @@ public class SingleRatingActivityFragment extends Fragment {
 
                     //Offline Sync
                     //final List<ToDoItem> results = refreshItemsFromMobileServiceTableSyncTable();
+                    mGroupData = new ArrayList<>();
+                    List<List<Map<String, String>>> listOfChildGroups = new ArrayList<>();
+                    for (MobileRatingSheet item : results) {
+                        HashMap<String, String> map = new HashMap<>();
+                        map.put(MobileRatingSheetAdapter.GROUP_NAME, item.mName);
+                        map.put(MobileRatingSheetAdapter.GROUP_RATING, item.mRiskGroup.toUpperCase());
+                        mGroupData.add(map);
+                        List<Map<String, String>> childGroupForGroupRow = new ArrayList<>();
+                        for (MobilePartialRating partialRating : item.mPartialRatingsInSection) {
+                            Map<String, String> childTextMap = new HashMap<>();
+                            childTextMap.put(MobileRatingSheetAdapter.CHILD_NAME, partialRating.mName);
+                            childTextMap.put(MobileRatingSheetAdapter.CHILD_RATING, partialRating.mRiskGroup.toUpperCase());
+                            childGroupForGroupRow.add(childTextMap);
+                        }
+                        listOfChildGroups.add(childGroupForGroupRow);
+                    }
+
+
+                    mExpViewAdapter = new MobileRatingSheetAdapter(
+                            getActivity(),
+                            mGroupData,
+                            R.layout.rating_sheet_group_view,
+                            new String[]{MobileRatingSheetAdapter.GROUP_NAME, MobileRatingSheetAdapter.GROUP_RATING},
+                            new int[]{R.id.rating_sheet_group_name, R.id.rating_sheet_group_item_rating},
+                            listOfChildGroups,
+                            R.layout.rating_sheet_child_view,
+                            new String[]{MobileRatingSheetAdapter.CHILD_NAME, MobileRatingSheetAdapter.CHILD_RATING},
+                            new int[]{R.id.rating_sheet_child_name, R.id.rating_sheet_child_item_rating});
 
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            mGroupData = new ArrayList<>();
-                            List<List<Map<String, String>>> listOfChildGroups = new ArrayList<>();
-                            for (MobileRatingSheet item : results) {
-                                HashMap<String, String> map = new HashMap<>();
-                                map.put(GROUP_NAME, item.mName);
-                                mGroupData.add(map);
-                                List<Map<String, String>> childGroupForGroupRow = new ArrayList<>();
-                                for (MobilePartialRating partialRating : item.mPartialRatingsInSection) {
-                                    Map<String, String> childTextMap = new HashMap<>();
-                                    childTextMap.put("CHILD_NAME", partialRating.mName);
-                                    childGroupForGroupRow.add(childTextMap);
-                                }
-                                listOfChildGroups.add(childGroupForGroupRow);
-                            }
 
-
-                            mExpViewAdapter = new SimpleExpandableListAdapter(
-                                    getActivity(),
-                                    mGroupData,
-                                    R.layout.rating_sheet_group_view,
-                                    new String[]{GROUP_NAME},
-                                    new int[]{R.id.rating_sheet_group_name},
-                                    listOfChildGroups,
-                                    R.layout.rating_sheet_child_view,
-                                    new String[]{"CHILD_NAME"},
-                                    new int[]{R.id.rating_sheet_child_name});
 
                             View rootView = getView();
                             if (rootView != null) {
-                                ExpandableListView expandableListView = (ExpandableListView) getView().findViewById(R.id.expandableListView);
-                                expandableListView.setAdapter(mExpViewAdapter);
+
+                                mExpandableListView.setAdapter(mExpViewAdapter);
+                                DisplayMetrics displayMetrics = new DisplayMetrics();
+                                getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+                                int width = displayMetrics.widthPixels;
+                                mExpandableListView.setIndicatorBoundsRelative(
+                                        width - Utility.GetPixelFromDips(getActivity(), 50),
+                                        width - Utility.GetPixelFromDips(getActivity(),10)
+                                );
                             }
+
                         }
                     });
                 } catch (final Exception e){
